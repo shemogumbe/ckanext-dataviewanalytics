@@ -27,5 +27,19 @@ class UserAnalytics(Base):
         self.country = country
         self.occupation = occupation
 
+class DataAnalytics(Base):
 
+    __tablename__ = "data_analytics"
+    id = Column(Integer, primary_key=True)
+    journalists = Column(String(256))
+    students = Column(String(256))
+    researchers = Column(String(256))
+    scientists = Column(String(256))
+    countrys = Column(String(256))
 
+    def __init__(self, journalists, students, researchers, scientists, countrys:
+        self.journalists = journalists
+        self.students = students
+        self.researchers = researchers
+        self.scientists = scientists
+        self.countrys = countrys
