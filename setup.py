@@ -80,7 +80,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points='''
         [ckan.plugins]
-        dataviewanalytics=ckanext.dataviewanalytics.plugin:DataviewanalyticsPlugin
+        dataviewanalytics=ckanext.dataviewanalytics.plugin:DataViewAnalyticsPlugin
 
         [babel.extractors]
         ckan = ckan.lib.extract:extract_ckan
