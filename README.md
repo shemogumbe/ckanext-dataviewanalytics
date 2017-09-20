@@ -29,6 +29,10 @@ This extension is presently on development and is not officially released yet. Y
 >```bash
 > python setup.py develop
 > ```
+> Install necessary requirements
+>```bash
+> pip install -r requirements.txt
+> ```
 
 Step 3:
 

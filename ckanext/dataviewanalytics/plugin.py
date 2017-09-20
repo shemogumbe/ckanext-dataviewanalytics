@@ -4,7 +4,7 @@ from ckan.common import c
 from ckanext.dataviewanalytics.db import create_tables
 
 
-class DataViewAnalyticsPlugin(plugins.SingletonPlugin):
+class DataviewanalyticsPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IRoutes)
 
