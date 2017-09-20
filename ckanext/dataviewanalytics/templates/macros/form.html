@@ -1,0 +1,34 @@
+{% ckan_extends %}
+
+{#
+Builds a group of radio buttons.
+
+name        - The name of the form parameter.
+id          - The id to use on the input. Convention is to prefix with 'field-'.
+value       - The value of the input.
+checked     - The checked radio button
+error       - An error string for the field or just true to highlight the field.
+classes     - An array of classes to apply to the control-group.
+is_required - Boolean of whether this input is requred for the form to validate
+
+Example:
+
+  {% import 'macros/form.html' as form %}
+  {{ form.radio('country', id='field-country', options=['Male', 'Female', 'Other'], checked='Male') }}
+
+#}
+{% macro radio(name, id='', value='', options='', checked='', error='', classes=[], attrs={}, is_required=true) %}
+  {%- set extra_html = caller() if caller -%}
+  <div class="control-group{{ " " ~ classes | join(" ") }}{% if error %} error{% endif %}">
+    <div class="controls">
+      {{ _('Which of the following best describes you?') }}
+      {% for option in options %}
+        <label class="radio" for="{{ option }}"> {{ option }}
+          <input id="{{ option }}" type="radio" name="{{ name }}" value="{{ option }}"{% if option == checked %} checked{% endif %} {{ attributes(attrs) }} />  
+          {% if error and error is iterable %}<strong class="error-inline">{{ error|join(', ') }}</strong>{% endif %}
+        </label>
+      {% endfor %}
+      {{ extra_html }}
+    </div>
+  </div>
+{% endmacro %}
