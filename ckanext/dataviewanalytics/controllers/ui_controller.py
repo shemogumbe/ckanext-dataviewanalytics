@@ -325,6 +325,21 @@ def save_user_extras(data, user, context):
     session.add(user_extras)
     session.commit()
 
+
+def update_user_extras(data, user, context):
+    '''Update extra user attributes in database
+    '''
+    session = context['session']
+
+    user_extras = session.query(UserAnalytics).\
+        filter_by(user_id=user['id']).first()
+
+    user_extras.occupation = data['occupation']
+    user_extras.country = use_country_name(data['country'])
+
+    session.add(user_extras)
+    session.commit()
+
 def has_user_visited_data(user_id, resource_id, context):
     '''Checks if the user has visited the resource
     '''
@@ -564,10 +579,9 @@ class DataViewAnalyticsUI(UserController, PackageController):
             user = toolkit.get_action('user_update')(context, data_dict)
             h.flash_success(_('Profile updated'))
 
-            '''Save extra user details if it doesn't exist
+            '''Update user analytics details
             '''
-            if not user_analytics_present(context):
-                save_user_extras(data_dict, user, context)
+            update_user_extras(data_dict, user, context)
 
             if current_user and data_dict['name'] != old_username:
                 # Changing currently logged in user's name.
