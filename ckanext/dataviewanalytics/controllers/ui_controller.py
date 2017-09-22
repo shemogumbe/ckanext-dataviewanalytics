@@ -12,6 +12,7 @@ from ckan.controllers.user import UserController
 from ckan.controllers.package import PackageController
 from ..db import UserAnalytics, DataAnalytics
 
+
 render = base.render
 NotFound = logic.NotFound
 check_access = logic.check_access
@@ -518,6 +519,9 @@ class DataViewAnalyticsUI(UserController, PackageController):
             c.display_name = old_data.get('display_name')
             c.user_name = old_data.get('name')
 
+            extra_data = user_analytics_present(context)
+            old_data['occupation'] = extra_data.occupation
+
             data = data or old_data
 
         except NotAuthorized:
@@ -670,3 +674,4 @@ class DataViewAnalyticsUI(UserController, PackageController):
 
         template = self._resource_template(dataset_type)
         return render(template, extra_vars=vars)
+
