@@ -25,7 +25,7 @@ This extension is presently on development and is not officially released yet. Y
 > ```bash
 >pip install -e git+https://github.com/shemogumbe/ckanext-dataviewanalytics.git#egg=ckanext-dataviewanalytics
 > ```
-> **Alternatively**: You can clone this repo (preferrably into the /src directory where you installed CKAN), cd into ckanext-dataviewanalytics and run
+> **Alternatively**: You can clone this repo (preferably into the /src directory where you installed CKAN), cd into ckanext-dataviewanalytics and run
 >```bash
 > python setup.py develop
 > ```

@@ -1,6 +1,5 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
-from ckan.common import c
 from ckanext.dataviewanalytics.db import create_tables
 
 
@@ -32,6 +31,16 @@ class DataviewanalyticsPlugin(plugins.SingletonPlugin):
         m.connect('resource_read', '/dataset/{id}/resource/{resource_id}', controller=
                   'ckanext.dataviewanalytics.controllers.ui_controller:DataViewAnalyticsUI',
                   action='resource_read')
+
+        # Edit a user
+        m.connect('user_edit', '/user/edit/{id:.*}', controller=
+                  'ckanext.dataviewanalytics.controllers.ui_controller:DataViewAnalyticsUI',
+                  action='edit', ckan_icon='cog')
+
+        # User dashboard
+        m.connect('user_dashboard', '/dashboard', controller=
+                  'ckanext.dataviewanalytics.controllers.ui_controller:DataViewAnalyticsUI',
+                  action='dashboard', ckan_icon='list')
 
         return m
 
