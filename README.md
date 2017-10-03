@@ -1,8 +1,21 @@
+
+[![PyPI version](https://badge.fury.io/py/ckanext-dataviewanalytics.svg)](https://badge.fury.io/py/ckanext-dataviewanalytics)
+[![GitHub issues](https://img.shields.io/github/issues/shemogumbe/ckanext-dataviewanalytics.svg)](https://github.com/shemogumbe/ckanext-dataviewanalytics/issues)
+[![GitHub forks](https://img.shields.io/github/forks/shemogumbe/ckanext-dataviewanalytics.svg)](https://github.com/shemogumbe/ckanext-dataviewanalytics/network)
+[![GitHub stars](https://img.shields.io/github/stars/shemogumbe/ckanext-dataviewanalytics.svg)](https://github.com/shemogumbe/ckanext-dataviewanalytics/stargazers)
+[![GitHub license](https://img.shields.io/badge/license-AGPLv3-blue.svg)](https://raw.githubusercontent.com/shemogumbe/ckanext-dataviewanalytics/master/LICENSE)
+[![Twitter](https://img.shields.io/twitter/url/https/github.com/shemogumbe/ckanext-dataviewanalytics/network.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=%5Bobject%20Object%5D)
+
 DataViewAnalytics CKAN Extension
 =========================
 
+
+
 This extension displays analytics on resources by analysing the country and occupation of visitors to every resource/data.
 This extension is presently on development and is not officially released for use yet. You should only install if you are a developer and want to contribute to the project.
+
+## Requirements
+This extension has been tested with versions of CKAN from 2.6.3 onwards and works well on these versions
 
 To install and set up CKAN, visit [CKAN Documentation](http://docs.ckan.org/en/latest/maintaining/installing/index.html)
 
