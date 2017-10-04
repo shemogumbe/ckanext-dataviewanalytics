@@ -13,10 +13,12 @@ DB_LOCATION = config.get('sqlalchemy.url')
 engine = create_engine(DB_LOCATION)
 Session = sessionmaker(bind=engine)
 
+
 def create_tables():
     '''Create the tables on the database
     '''
     Base.metadata.create_all(engine)
+
 
 class UserAnalytics(Base):
     ''' Model to create database table for extra user details

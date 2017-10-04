@@ -2,24 +2,31 @@ import ckan.lib.base as base
 import ckan.authz as authz
 import ckan.model as model
 import ckan.logic as logic
-import ckan.logic.schema as schema
 import ckan.lib.captcha as captcha
 import ckan.lib.navl.dictization_functions as dictization_functions
 import ckan.plugins.toolkit as toolkit
 import ckan.lib.helpers as h
-from ckan.common import config, c, request, response
+from paste.deploy.converters import asbool
+from ckan.common import _, config, c, request, response
 from ckan.controllers.user import UserController
 from ckan.controllers.package import PackageController
 from ..db import UserAnalytics, DataAnalytics
-from geoip import geolite2
+
 
 render = base.render
 NotFound = logic.NotFound
 check_access = logic.check_access
 NotAuthorized = logic.NotAuthorized
 ValidationError = logic.ValidationError
+UsernamePasswordError = logic.UsernamePasswordError
 DataError = dictization_functions.DataError
 unflatten = dictization_functions.unflatten
+
+'''Get the users's country using IP address
+'''
+from geoip import geolite2
+match = geolite2.lookup_mine()
+origin = match.country
 
 '''List of all countries instrumental in converting
    country code to country name
@@ -286,7 +293,8 @@ occupations = [
     'Programmer',
     'Civil servant',
     'Entrepreneur',
-    'Data scientist'
+    'Data scientist',
+    'Others'
 ]
 
 def set_repoze_user(user_id):
@@ -318,6 +326,18 @@ def save_user_extras(data, user, context):
     session.add(user_extras)
     session.commit()
 
+
+def update_user_extras(data, user_data, context):
+    '''Update extra user attributes in database
+    '''
+    session = context['session']
+
+    user_data.occupation = data['occupation']
+    user_data.country = use_country_name(data['country'])
+
+    session.add(user_data)
+    session.commit()
+
 def has_user_visited_data(user_id, resource_id, context):
     '''Checks if the user has visited the resource
     '''
@@ -346,9 +366,48 @@ def save_view_details(viewer_id, resource_id, context):
         session.add(view_details)
         session.commit()
 
+def user_analytics_present(context):
+    '''Checks if the user's details exist in the
+        User Analytics table on the database
+    '''
+    session = context['session']
+    user_details = session.query(UserAnalytics).\
+        filter_by(user_id=context['auth_user_obj'].id).first()
+    return user_details
+
 
 class DataViewAnalyticsUI(UserController, PackageController):
-    
+
+    def dashboard(self, id=None, offset=0):
+        '''Opens up the dashboard page on signup or login
+        '''
+        context = {'model': model, 'session': model.Session,
+                       'user': c.user, 'auth_user_obj': c.userobj,
+                       'for_view': True}
+        if user_analytics_present(context):
+            data_dict = {'id': id, 'user_obj': c.userobj, 'offset': offset}
+            self._setup_template_variables(context, data_dict)
+
+            q = request.params.get('q', u'')
+            filter_type = request.params.get('type', u'')
+            filter_id = request.params.get('name', u'')
+
+            c.followee_list = toolkit.get_action('followee_list')(
+                context, {'id': c.userobj.id, 'q': q})
+            c.dashboard_activity_stream_context = self._get_dashboard_context(
+                filter_type, filter_id, q)
+            c.dashboard_activity_stream = h.dashboard_activity_stream(
+                c.userobj.id, filter_type, filter_id, offset
+            )
+
+            # Mark the user's new activities as old whenever they view their
+            # dashboard page.
+            toolkit.get_action('dashboard_mark_activities_old')(context, {})
+
+            return render('user/dashboard.html')
+        else:
+            return self.edit(id=None, data=None, errors=None, error_summary=None)
+
     def new(self, data=None, errors=None, error_summary=None):
 
         '''GET to display a form for registering a new user.
@@ -372,8 +431,7 @@ class DataViewAnalyticsUI(UserController, PackageController):
         if c.user and not data and not authz.is_sysadmin(c.user):
             # #1799 Don't offer the registration form if already logged in
             return render('user/logout_first.html')
-        match = geolite2.lookup_mine()
-        origin = match.country
+
         data = data or {}
         errors = errors or {}
         error_summary = error_summary or {}
@@ -425,6 +483,131 @@ class DataViewAnalyticsUI(UserController, PackageController):
                               id=data_dict['name'])
             else:
                 return render('user/logout_first.html')
+
+    def edit(self, id=None, data=None, errors=None, error_summary=None):
+        context = {'save': 'save' in request.params,
+                   'schema': self._edit_form_to_db_schema(),
+                   'model': model, 'session': model.Session,
+                   'user': c.user, 'auth_user_obj': c.userobj
+                   }
+        if id is None:
+            if c.userobj:
+                id = c.userobj.id
+            else:
+                abort(400, _('No user specified'))
+        data_dict = {'id': id}
+
+        try:
+            check_access('user_update', context, data_dict)
+        except NotAuthorized:
+            abort(403, _('Unauthorized to edit a user.'))
+
+        if (context['save']) and not data:
+            return self._save_edit(id, context)
+
+        try:
+            old_data = toolkit.get_action('user_show')(context, data_dict)
+
+            schema = self._db_to_edit_form_schema()
+            if schema:
+                old_data, errors = \
+                    dictization_functions.validate(old_data, schema, context)
+
+            c.display_name = old_data.get('display_name')
+            c.user_name = old_data.get('name')
+
+            extra_data = user_analytics_present(context)
+            if extra_data:
+                old_data['occupation'] = extra_data.occupation
+
+            data = data or old_data
+
+        except NotAuthorized:
+            abort(403, _('Unauthorized to edit user %s') % '')
+        except NotFound:
+            abort(404, _('User not found'))
+
+        user_obj = context.get('user_obj')
+
+        if not (authz.is_sysadmin(c.user)
+                or c.user == user_obj.name):
+            abort(403, _('User %s not authorized to edit %s') %
+                  (str(c.user), id))
+
+        errors = errors or {}
+        vars = {'data': data, 'errors': errors, 'error_summary': error_summary, 'origin': origin,
+        'countries': allCountries, 'occupations': occupations}
+
+        self._setup_template_variables({'model': model,
+                                        'session': model.Session,
+                                        'user': c.user},
+                                       data_dict)
+
+        c.is_myself = True
+        c.show_email_notifications = asbool(
+            config.get('ckan.activity_streams_email_notifications'))
+        c.form = render(self.edit_user_form, extra_vars=vars)
+
+        return render('user/edit.html')
+
+    def _save_edit(self, id, context):
+        try:
+            if id in (c.userobj.id, c.userobj.name):
+                current_user = True
+            else:
+                current_user = False
+            old_username = c.userobj.name
+
+            data_dict = logic.clean_dict(unflatten(
+                logic.tuplize_dict(logic.parse_params(request.params))))
+            context['message'] = data_dict.get('log_message', '')
+            data_dict['id'] = id
+
+            email_changed = data_dict['email'] != c.userobj.email
+
+            if (data_dict['password1'] and data_dict['password2']) \
+                    or email_changed:
+                identity = {'login': c.user,
+                            'password': data_dict['old_password']}
+                auth = authenticator.UsernamePasswordAuthenticator()
+
+                if auth.authenticate(request.environ, identity) != c.user:
+                    raise UsernamePasswordError
+
+            # MOAN: Do I really have to do this here?
+            if 'activity_streams_email_notifications' not in data_dict:
+                data_dict['activity_streams_email_notifications'] = False
+
+            user = toolkit.get_action('user_update')(context, data_dict)
+            h.flash_success(_('Profile updated'))
+
+            '''Update or add user analytics details
+            '''
+            extra_user_data = user_analytics_present(context)
+            if extra_user_data:
+                update_user_extras(data_dict, extra_user_data,  context)
+            else:
+                save_user_extras(data_dict, user, context)
+
+            if current_user and data_dict['name'] != old_username:
+                # Changing currently logged in user's name.
+                # Update repoze.who cookie to match
+                set_repoze_user(data_dict['name'])
+            h.redirect_to(controller='user', action='read', id=user['name'])
+        except NotAuthorized:
+            abort(403, _('Unauthorized to edit user %s') % id)
+        except NotFound, e:
+            abort(404, _('User not found'))
+        except DataError:
+            abort(400, _(u'Integrity Error'))
+        except ValidationError, e:
+            errors = e.error_dict
+            error_summary = e.error_summary
+            return self.edit(id, data_dict, errors, error_summary)
+        except UsernamePasswordError:
+            errors = {'oldpassword': [_('Password entered was incorrect')]}
+            error_summary = {_('Old Password'): _('incorrect password')}
+            return self.edit(id, data_dict, errors, error_summary)
 
     def resource_read(self, id, resource_id):
         context = {'model': model, 'session': model.Session,
@@ -493,3 +676,4 @@ class DataViewAnalyticsUI(UserController, PackageController):
 
         template = self._resource_template(dataset_type)
         return render(template, extra_vars=vars)
+

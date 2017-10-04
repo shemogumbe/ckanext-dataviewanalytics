@@ -1,7 +1,8 @@
 DataViewAnalytics CKAN Extension
 =========================
 
-This extension displays analytics on resources by analysing the country and occupation of resource visitors.
+This extension displays analytics on resources by analysing the country and occupation of visitors to every resource/data.
+This extension is presently on development and is not officially released for use yet. You should only install if you are a developer and want to contribute to the project.
 
 To install and set up CKAN, visit [CKAN Documentation](http://docs.ckan.org/en/latest/maintaining/installing/index.html)
 
@@ -19,13 +20,12 @@ Step 2:
 
 * Install the extension
 
-This extension is presently on development and is not officially released yet. You should only install if you are a developer and want to contribute to the project.
 
 >You can download the source code and install the extension manually. To do so, execute the following command:
 > ```bash
->pip install -e git+https://github.com/shemogumbe/ckanext-dataviewanalytics.git#egg=ckanext-dataviewanalytics
+> pip install -e git+https://github.com/shemogumbe/ckanext-dataviewanalytics.git#egg=ckanext-dataviewanalytics
 > ```
-> **Alternatively**: You can clone this repo (preferrably into the /src directory where you installed CKAN), cd into ckanext-dataviewanalytics and run
+> **Alternatively**: You can clone this repo (preferably into the /src directory where you installed CKAN), cd into ckanext-dataviewanalytics and run
 >```bash
 > python setup.py develop
 > ```
@@ -63,7 +63,7 @@ With `--reload`, your server is restarted automatically whenever you make change
 Support
 -------
 
-If you've found a bug/issue in the extension, please open a new issue [here](https://github.com/shemogumbe/ckanext-dataviewanalytics/issues/new) _ (try
+If you've found a bug/issue in the extension, please open a new issue [here](https://github.com/shemogumbe/ckanext-dataviewanalytics/issues/new) (try
 searching first to see if there's already an [issue](https://github.com/shemogumbe/ckanext-dataviewanalytics/issues) for your bug).
 
 
@@ -72,7 +72,7 @@ Contributing to DataViewAnalytics CKAN Extension
 ---------------------------------------------
 
 If you have interest in contributing to the development of DataViewAnalytics extension, you are welcome. A good starting point
-will be reading the CKAN general [Contributing guide](http://docs.ckan.org/en/ckan-2.7.0/contributing/index.html). Then you can checkout 
+will be reading the CKAN general [Contributing guide](http://docs.ckan.org/en/ckan-2.7.0/contributing/index.html). Then you can check out 
 existing [issues](https://github.com/shemogumbe/ckanext-dataviewanalytics/issues) that are open for contribution; new features and issues are welcome.
 To work on any issue, comment on the issue to indicate your interest and the issue will be assigned to you. It is always a good idea to seek
 for clarification (where necessary) on any issue before you work on it.
